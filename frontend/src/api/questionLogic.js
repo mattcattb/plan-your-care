@@ -1,19 +1,15 @@
-import {statesArray} from "../../../staticDB/states.js"
+function questionLogic(state, weeks, states) {
+  const data = states.find((candidate) => candidate.abbr === state);
+  if (!data) {
+    return {data: null, aborMess: "We could not find information for that state."};
+  }
 
-//ok, so I will match the state data given by the user with the data in our database
+  const careMayBeAvailable = Number(weeks) <= data.weeksBan;
+  const aborMess = careMayBeAvailable
+    ? "Based on the reference data, care may be available at this stage. Use the Clinic Finder and confirm current requirements with a provider."
+    : "The reference data indicates restrictions at this stage. Laws and exceptions change, so contact a provider or trusted hotline to confirm current options, including care in another state.";
 
-//then, i will return information, including whether or not an abortion in possible in the state. 
-
-function questionLogic(state, weeks){
-    console.log("QL called with:",state,weeks)
-    const data = statesArray.find(s=>s.abbr===state);
-    const avaAbort = weeks <= data.weeksBan;
-    const aborMess = avaAbort 
-    ? "You're still able to receive an abortion at this stage. Use the ClinicFinder to find the nearest clinic to you."
-    : "Unfourtunatly, you cannot receive an abortion at this stage. Please use the ClinicFinder to locate a clinic near you outside of your state.";
-    console.log("returning: ",{data,aborMess});
-    return {data, aborMess};
-
+  return {data, aborMess};
 }
 
 export default questionLogic;

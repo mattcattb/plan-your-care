@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef, useCallback } from "react"; // useMemo removed as not currently needed
+import {useState, useRef} from "react";
+import {useQuery} from "@tanstack/react-query";
 import { getNearbyClinics, getAllClinics } from "../api/clinic";
 import { Map, Marker, InfoWindow } from "@vis.gl/react-google-maps";
 import { PlaceAutocompleteClassic } from "../components/PlaceAutocomplete";
@@ -7,40 +8,30 @@ const ClinicFinder = () => {
   const defaultCenter = { lat: 39.8283, lng: -98.5795 };
   const defaultZoomLevel = 4; // Define a constant for default zoom
 
-  const [selectedPlace, setSelectedPlace] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [zoom, setZoom] = useState(defaultZoomLevel); // Use defaultZoomLevel
   const [mapCenter, setMapCenter] = useState(defaultCenter);
 
   const [activeClinic, setActiveClinic] = useState(null);
-  const [nearClinics, setNearClinics] = useState([]);
-  const [allClinics, setAllClinics] = useState([]);
+  const [searchCenter, setSearchCenter] = useState(null);
 
   const mapRef = useRef(null);
 
-  useEffect(() => {
-    const loadAllClinics = async () => {
-      setLoading(true);
-      try {
-        const res = await getAllClinics();
-        setAllClinics(res);
-      } catch (error) {
-        console.error("Error loading clinics:", error);
-        setError("Error loading clinics.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadAllClinics();
-  }, []);
+  const {data: allClinics = [], isPending: clinicsPending, error: clinicsError} = useQuery({
+    queryKey: ["clinics"],
+    queryFn: getAllClinics,
+  });
+  const {data: nearClinics = [], isFetching: nearbyPending, error: nearbyError} = useQuery({
+    queryKey: ["clinics", "nearby", searchCenter?.lat, searchCenter?.lng],
+    queryFn: () => getNearbyClinics(searchCenter.lat, searchCenter.lng),
+    enabled: Boolean(searchCenter),
+  });
 
   const handlePlaceSelect = async (place) => {
     if (!place || !place.geometry) {
       setError("Selected place has no geometry.");
       return;
     }
-    setSelectedPlace(place);
     setError(null);
     const lat = place.geometry.location.lat();
     const lng = place.geometry.location.lng();
@@ -48,16 +39,7 @@ const ClinicFinder = () => {
     setMapCenter({ lat, lng });
     setZoom(13); // Consistent zoom level for place selection and marker click
 
-    setLoading(true);
-    try {
-      const clinicsData = await getNearbyClinics(lat, lng);
-      setNearClinics(clinicsData);
-    } catch (err) {
-      console.error("Error fetching clinics:", err);
-      setError("Error fetching clinics.");
-    } finally {
-      setLoading(false);
-    }
+    setSearchCenter({lat, lng});
   };
 
   const handleMarkerClick = (clinic) => {
@@ -67,12 +49,15 @@ const ClinicFinder = () => {
   };
 
   return (
-    <div className="flex flex-col w-full justify-start mt-11 ">
+    <div className="flex flex-col w-full items-center justify-start mt-11 px-4">
       <h2 className="text-5xl m-5 text-fuchsia-950 font-bold">Find Clinics Near You</h2>
-      <div className="flex flex-col w-[1300px] gap-7 justify-center">
+      <div className="flex flex-col w-full max-w-[1200px] gap-7 justify-center">
         <PlaceAutocompleteClassic onPlaceSelect={handlePlaceSelect} />
         {error && <p style={{ color: "red" }}>{error}</p>}
-        {loading && <p>Loading clinics...</p>}
+        {(clinicsPending || nearbyPending) && <p>Loading clinics...</p>}
+        {(clinicsError || nearbyError) && (
+          <p className="text-red-900">Unable to load clinics: {(clinicsError || nearbyError).message}</p>
+        )}
 
         <div>
           <Map
@@ -114,9 +99,9 @@ const ClinicFinder = () => {
           </Map>
         </div>
 
-        <div className="flex flex-col p-5 bg-gray-100 rounded-lg shadow-lg w-[300px] h-auto overflow-y-auto">
+        <div className="flex flex-col p-5 bg-gray-100 rounded-lg shadow-lg w-full h-auto overflow-y-auto">
           <h3 className="text-xl font-semibold mb-4 text-black">Nearby Clinics</h3>
-          <ul className="flex flex-row space-y-2 items-center text-center">
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 text-center">
             {nearClinics.map((clinic) => (
               <li
                 key={clinic._id}

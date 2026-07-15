@@ -1,8 +1,4 @@
-import { Document } from "mongoose";
-import internal from "stream";
-
-
-type RestrictionLevel = 5 | 4 | 3 | 2 | 1; // Union type
+type RestrictionLevel = 5 | 4 | 3 | 2 | 1 | 0;
 
 
 export interface StateData {
@@ -12,5 +8,3 @@ export interface StateData {
   weeksBan: number;
   abbr: string;
 }
-export interface StateDataInterface extends StateData, Document {}
-

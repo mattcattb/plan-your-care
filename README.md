@@ -12,9 +12,10 @@ Devpost: https://devpost.com/software/planurcare
 
 ## Tech Stack
 
-- Frontend: React, Vite, Tailwind CSS
-- Backend: Express, Node.js
-- Database: MongoDB
+- Runtime and package manager: Bun workspaces
+- Frontend: React, Vite, Tailwind CSS, TanStack Router, TanStack Query
+- Backend: Bun and Hono
+- Data: Redis with bundled read-only fallback data
 - Maps: Google Maps APIs
 - Integrations: EmailJS
 
@@ -41,9 +42,9 @@ I worked across the React frontend, map experience, resource presentation, backe
 
 ## Architecture
 
-- `frontend` owns the Vite/React app, map interface, resource views, and user-facing flow.
-- `backend` owns the Express API and data access.
-- `staticDB` contains state and clinic seed data used by the app.
+- `frontend` owns the Vite/React app, TanStack routes and queries, map interface, and Bun static/proxy server.
+- `backend` owns the Hono API, Redis connection, and bundled state/clinic reference data.
+- The browser always calls same-origin `/api`. Vite proxies it in development and the Bun web server proxies it in production.
 
 ## Hard Parts
 
@@ -59,24 +60,53 @@ I worked across the React frontend, map experience, resource presentation, backe
 
 ## Running Locally
 
-Frontend:
+Requirements: Bun 1.3 or newer. Redis is optional locally; without `REDIS_URL`, the API uses the bundled read-only datasets.
 
 ```bash
 git clone https://github.com/mattcattb/Winghacks.git
-cd Winghacks/frontend
-npm install
-npm run dev
+cd Winghacks
+cp .env.example .env
+bun install
+bun run dev
 ```
 
-Backend:
+The web app runs at `http://localhost:5173` and proxies API requests to `http://localhost:3000`.
+
+Useful commands:
 
 ```bash
-cd ../backend
-npm install
-npm run dev
+bun run dev:api
+bun run dev:web
+bun run typecheck
+bun run test
+bun run build
 ```
 
-Create local environment files for API keys, database URLs, and email configuration before running the full app.
+Set `VITE_GEOCODING_API_KEY` in `.env` to enable Google Maps and Places features.
+
+## Railway Deployment
+
+Create three services in one Railway project: `web`, `api`, and a Railway Redis database. Connect `web` and `api` to this repository without setting a root directory.
+
+For `api`:
+
+- Config file path: `/railway.api.json`
+- `PORT=3000`
+- `REDIS_URL=${{Redis.REDIS_URL}}` (use the actual Redis service name)
+- `CORS_ORIGINS` is optional because browser traffic goes through the web proxy
+
+For `web`:
+
+- Config file path: `/railway.web.json`
+- `API_URL=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:3000` (use the actual API service name)
+- `VITE_GEOCODING_API_KEY` set to the browser-restricted Google Maps key
+- Generate the public domain on this service only
+
+The two config files select their Dockerfiles, health checks, restart behavior, and watch paths. The web service serves the SPA and forwards `/api/*` over Railway private networking, so no public API domain or browser CORS hop is required.
+
+## Data Note
+
+The state-law and clinic datasets were carried over from the hackathon project so the port remains usable. This information changes frequently and must be reviewed and refreshed before the site is presented as current medical or legal guidance.
 
 ## Project Notes
 

@@ -1,0 +1,13 @@
+{
+  "name": "plan-your-care",
+  "private": true,
+  "workspaces": ["backend", "frontend"],
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "dev:api": "bun run --filter @plan-your-care/api dev",
+    "dev:web": "bun run --filter @plan-your-care/web dev",
+    "build": "bun run --filter '*' build",
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "bun run --filter '*' test"
+  }
+}

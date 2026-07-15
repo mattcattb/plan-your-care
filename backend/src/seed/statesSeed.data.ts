@@ -323,7 +323,7 @@ export const statesArray: StateData[] = [
         "Missouri maintains targeted regulation for abortion providers laws"
     ],
     weeksBan: 24, // Or whatever the limit is
-    abbr: "MS"
+    abbr: "MO"
   },
   {
     name: "Montana",

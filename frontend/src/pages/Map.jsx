@@ -1,10 +1,9 @@
 // import 'leaflet/dist/leaflet.css';
-import WeirdMapComp from "../components/WeirdMapComp";
 import "../App.css";
 
 import EmbrePillCanvas from "../threemodels/EmbrePill.jsx";
-import { useState, useEffect, useRef } from "react";
-import { statesArray } from "../../../staticDB/states";
+import {useState, useEffect, useRef} from "react";
+import {useQuery} from "@tanstack/react-query";
 import {mapData} from '../assets/mapSVG.js'
 
 import {getAllStatesData} from '../api/statesData.js'
@@ -16,31 +15,17 @@ import "../style.css";
 
 function Map() {
   const [selectedState, setselectedState] = useState(null);
-  const [statesData, setStatesData] = useState([]);
   const sectionRef = useRef(null); // Ref for the section
-
-  useEffect(() => {
-    // load states data
-
-    const loadAllStates = async () => {
-
-      const allStatesData = await getAllStatesData();
-      console.log(JSON.stringify(allStatesData))
-      setStatesData(allStatesData);
-      console.log(statesData)
-    }
-
-    loadAllStates()
-  }, []);
+  const {data: statesData = [], isPending, error} = useQuery({
+    queryKey: ["states"],
+    queryFn: getAllStatesData,
+  });
 
   const handleClick = (stateId) => {
     // const stateId = e.target.getAttribute("id");
     const stateInfo = statesData.find((state) => state.abbr === stateId);
     setselectedState(stateInfo || null);
 
-    console.log(`state clicked: ${stateId}`);
-    console.log(`state info: ${JSON.stringify(stateInfo)}`);
-    console.log(`total states: ${stateInfo.length()}`)
   };
   useEffect(() => {
     // Scroll to the section when selectedState changes and is not null
@@ -86,7 +71,8 @@ function Map() {
               })}
             </svg>
           )}
-          {!statesData.length && <p>Loading map...</p>} {/* Display a loading message */}
+          {isPending && <p>Loading map...</p>}
+          {error && <p className="text-red-900">Unable to load state data: {error.message}</p>}
         </div>
 
         </div>

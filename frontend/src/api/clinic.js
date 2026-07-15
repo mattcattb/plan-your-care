@@ -1,30 +1,11 @@
-import axiosClient from "./axiosClient"
+import {apiGet} from "./client";
 
-export const getNearbyClinics = async (lat, lng, maxDistance=5000) => {
-
-  try {
-    const res = await axiosClient.get('clinic/nearby/', {
-      params: {lat, lng, maxDistance}
-    })
-    console.log(`response to nearby clinics: ${JSON.stringify(res.data)}`)
-    return res.data.clinicsDistance; // should be an array
-
-  } catch (error) {
-    console.log(`An error occured... ${error}`)
-    return error
-  }
-
-}
+export const getNearbyClinics = async (lat, lng, maxDistance = 5000) => {
+  const data = await apiGet("clinic/nearby", {lat, lng, maxDistance});
+  return data.clinicsDistance;
+};
 
 export const getAllClinics = async () => {
-  try {
-    const res = await axiosClient.get('clinic/');
-    console.log(`response to getting all clinics: ${res.data}`)
-
-    return res.data.clinics;
-
-  } catch (error) {
-    console.log(`An error occured getting all clinics: ${error}`)
-    return error
-  }
-}
+  const data = await apiGet("clinic");
+  return data.clinics;
+};

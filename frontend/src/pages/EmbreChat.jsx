@@ -1,10 +1,11 @@
 import phone from '../assets/phone.svg';
 import EmbreCanvas from "../threemodels/Embre.jsx";
 import { InputPicker, InputNumber } from 'rsuite';
-import { useState , useEffect} from 'react';
+import {useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
 import questionLogic from '../api/questionLogic.js';
+import {getAllStatesData} from '../api/statesData.js';
 import 'rsuite/InputPicker/styles/index.css';
-import statesArray from '../../../staticDB/states.js';
 
 
 export default function EmbreChat(){
@@ -16,7 +17,10 @@ export default function EmbreChat(){
     const [weeks, setWeeks] = useState('');
     const [showBubble, setBubble] = useState(0);
     const [aborMess, setAborMess] = useState('error'); // state to hold the abortion message
-    const [matchedState, setMatchedState] = useState(null);
+    const {data: states = []} = useQuery({
+        queryKey: ['states'],
+        queryFn: getAllStatesData,
+    });
 
     const handleStateSelect =(selectedValue) =>{
         console.log(selectedValue);
@@ -31,14 +35,11 @@ export default function EmbreChat(){
     }
 
     const handleNextStep = () => {
-        setBubble(prevStep => prevStep + 1);
-
-        if (showBubble === 3) {
-            const { data, aborMess } = questionLogic(state, weeks);
-            setMatchedState(data);
+        if (showBubble === 1) {
+            const {aborMess} = questionLogic(state, weeks, states);
             setAborMess(aborMess);
-            console.log(aborMess)
         }
+        setBubble(prevStep => prevStep + 1);
     };
 
 
@@ -119,7 +120,7 @@ export default function EmbreChat(){
             </div>
             <div className={`bubble-container absolute top-[20%] left-0 right-0 w-[240px] translate-x-[42%] flex flex-col items-start justify-start gap-2.5 transition-opacity duration-500 ease-out transition-transform duration-500 ease-out ${showBubble ==1 ? "fade-in" : "fade-out"}`} >
                 <div className='bubble-left max-w-[40%] p-2.5 px-5 bg-[#F4D7E3] text-black rounded-xl text-base break-words ml-2.5 mr-2.5 self-start'>
-                    Thank you! Now, if you don't mind me asking, how many weeks ago was your last period?
+                    Thank you! Now, if you don&apos;t mind me asking, how many weeks ago was your last period?
                 </div>
                 <div className='bubble-right max-w-[40%] p-2.5 px-5 bg-[#F4D7E3] text-black rounded-xl text-base break-words ml-2.5 mr-2.5 self-end'>
                     <InputNumber

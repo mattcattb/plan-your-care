@@ -1,5 +1,6 @@
 import {useRef, useEffect, useState} from 'react';
 import {useMapsLibrary} from '@vis.gl/react-google-maps';
+import PropTypes from 'prop-types';
 
 
 // This is an example of the classic "Place Autocomplete" widget.
@@ -33,4 +34,8 @@ export const PlaceAutocompleteClassic = ({onPlaceSelect}) => {
       <input className='text-black w-full p-2' ref={inputRef} />
     </div>
   );
+};
+
+PlaceAutocompleteClassic.propTypes = {
+  onPlaceSelect: PropTypes.func.isRequired,
 };

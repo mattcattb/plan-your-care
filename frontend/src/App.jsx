@@ -1,35 +1,50 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import EmbreChat from "./pages/EmbreChat";
-import Map from "./pages/Map";
-import ClinicFinder from "./pages/ClinicFinder";
+import {
+  Outlet,
+  RouterProvider,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  lazyRouteComponent,
+} from "@tanstack/react-router";
+import {APIProvider} from "@vis.gl/react-google-maps";
 import Navbar from "./components/nav-bar";
 import "./App.css";
 
-import {APIProvider} from '@vis.gl/react-google-maps'
+const RootLayout = () => (
+  <APIProvider apiKey={import.meta.env.VITE_GEOCODING_API_KEY || ""}>
+    <Navbar />
+    <main>
+      <Outlet />
+    </main>
+  </APIProvider>
+);
 
-const App = () => {
-  
-  const VITE_GEOCODING_API_KEY = import.meta.env.VITE_GEOCODING_API_KEY
-  console.log(`Geocoding api: ${VITE_GEOCODING_API_KEY}`)
-  
-  return (
-    <APIProvider apiKey={VITE_GEOCODING_API_KEY}>
-      <div>
-        <Router>
-          <Navbar />
-          <main className="">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/map" element={<Map />} />
-              <Route path="/clinics" element={<ClinicFinder />} />
-              <Route path="/chat" element={<EmbreChat/>}/>
-            </Routes>
-          </main>
-        </Router>
-      </div>
-    </APIProvider>
-  );
-};
+const rootRoute = createRootRoute({component: RootLayout});
+const routeTree = rootRoute.addChildren([
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/",
+    component: lazyRouteComponent(() => import("./pages/Home")),
+  }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/map",
+    component: lazyRouteComponent(() => import("./pages/Map")),
+  }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/clinics",
+    component: lazyRouteComponent(() => import("./pages/ClinicFinder")),
+  }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/chat",
+    component: lazyRouteComponent(() => import("./pages/EmbreChat")),
+  }),
+]);
+
+const router = createRouter({routeTree, defaultPreload: "intent"});
+
+const App = () => <RouterProvider router={router} />;
 
 export default App;
