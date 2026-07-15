@@ -1,4 +1,4 @@
-import { Clinic } from "../types/clinic"
+import type {Clinic} from "../types/clinic";
 
 export const clinicsData: Clinic[] = [
   {
@@ -152,7 +152,7 @@ export const clinicsData: Clinic[] = [
       name: "Planned Parenthood - Fort Myers Health Center",
       lat: 26.548492857290878,
       lng: -81.84867210510691,
-      state: "Fl",
+      state: "FL",
   },
   {
       name: "Columbus Women’s Health",

@@ -20,6 +20,12 @@ describe("API", () => {
     expect((await response.json()).stateData.abbr).toBe("FL");
   });
 
+  test("exposes the state surface at its canonical path", async () => {
+    const response = await app.request("/api/states?abbr=FL");
+    expect(response.status).toBe(200);
+    expect((await response.json()).stateData.abbr).toBe("FL");
+  });
+
   test("returns all 50 states with unique abbreviations", async () => {
     const response = await app.request("/api/stateData");
     const {statesData} = await response.json();
@@ -39,5 +45,21 @@ describe("API", () => {
     const data = await response.json();
     expect(response.status).toBe(200);
     expect(data.clinicsDistance.length).toBeGreaterThan(0);
+    expect(data.source.kind).toBe("community-maintained");
+  });
+
+  test("normalizes all seeded clinic state codes", async () => {
+    const response = await app.request("/api/clinics");
+    const data = await response.json();
+    expect(data.clinics.every((clinic: {state: string}) => /^[A-Z]{2}$/.test(clinic.state))).toBe(true);
+  });
+
+  test("publishes classified care-data sources", async () => {
+    const response = await app.request("/api/clinics/sources");
+    const data = await response.json();
+    expect(response.status).toBe(200);
+    expect(data.sources.map((source: {classification: string}) => source.classification)).toContain(
+      "general-health-center",
+    );
   });
 });
