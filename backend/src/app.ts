@@ -22,6 +22,9 @@ export const app = new Hono()
   .get("/health", (context) =>
     context.json({status: "ok", redis: isRedisConnected()}),
   )
+  .get("/api/health", (context) =>
+    context.json({status: "ok", redis: isRedisConnected()}),
+  )
   .get("/api/stateData", async (context) => {
     const statesData = await getStates();
     const abbr = context.req.query("abbr")?.toUpperCase();

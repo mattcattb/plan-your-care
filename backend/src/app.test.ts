@@ -8,6 +8,12 @@ describe("API", () => {
     expect(await response.json()).toEqual({status: "ok", redis: false});
   });
 
+  test("reports Redis status through the public API proxy path", async () => {
+    const response = await app.request("/api/health");
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({status: "ok", redis: false});
+  });
+
   test("returns state reference data", async () => {
     const response = await app.request("/api/stateData?abbr=FL");
     expect(response.status).toBe(200);

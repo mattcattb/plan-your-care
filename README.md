@@ -86,23 +86,24 @@ Set `VITE_GEOCODING_API_KEY` in `.env` to enable Google Maps and Places features
 
 ## Railway Deployment
 
-Create three services in one Railway project: `web`, `api`, and a Railway Redis database. Connect `web` and `api` to this repository without setting a root directory.
+Import the repository as a Bun monorepo, then add a Railway Redis database. Railway creates the `@plan-your-care/web` and `@plan-your-care/api` workspace services automatically. The service-local `railway.json` files configure health checks and restart behavior.
 
-For `api`:
+For `@plan-your-care/api`:
 
-- Config file path: `/railway.api.json`
 - `PORT=3000`
 - `REDIS_URL=${{Redis.REDIS_URL}}` (use the actual Redis service name)
 - `CORS_ORIGINS` is optional because browser traffic goes through the web proxy
 
-For `web`:
+For `@plan-your-care/web`:
 
-- Config file path: `/railway.web.json`
-- `API_URL=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:3000` (use the actual API service name)
+- `PORT=4173`
+- `API_URL=http://plan-your-careapi.railway.internal:3000`
 - `VITE_GEOCODING_API_KEY` set to the browser-restricted Google Maps key
 - Generate the public domain on this service only
 
-The two config files select their Dockerfiles, health checks, restart behavior, and watch paths. The web service serves the SPA and forwards `/api/*` over Railway private networking, so no public API domain or browser CORS hop is required.
+The web service serves the SPA and forwards `/api/*` over Railway private networking, so no public API domain or browser CORS hop is required. The root Docker and Railway config files remain available for manual service creation, but the automatic Bun monorepo import does not require them.
+
+Current deployment: https://plan-your-careweb-production.up.railway.app
 
 ## Data Note
 

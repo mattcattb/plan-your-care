@@ -10,14 +10,35 @@ import {APIProvider} from "@vis.gl/react-google-maps";
 import Navbar from "./components/nav-bar";
 import "./App.css";
 
-const RootLayout = () => (
-  <APIProvider apiKey={import.meta.env.VITE_GEOCODING_API_KEY || ""}>
+const googleMapsKey = import.meta.env.VITE_GEOCODING_API_KEY;
+
+const MapsSetupRequired = () => (
+  <div className="mx-auto mt-32 max-w-2xl rounded-3xl bg-purple-100 p-10 text-left text-[#1F0322] shadow-lg">
+    <h1 className="mb-4 text-4xl font-bold">Clinic map setup required</h1>
+    <p className="text-lg">
+      Add a browser-restricted Google Maps key as <code>VITE_GEOCODING_API_KEY</code>
+      in Railway to enable clinic search, Places autocomplete, and the interactive map.
+    </p>
+  </div>
+);
+
+const RootContent = () => (
+  <>
     <Navbar />
     <main>
       <Outlet />
     </main>
-  </APIProvider>
+  </>
 );
+
+const RootLayout = () =>
+  googleMapsKey ? (
+    <APIProvider apiKey={googleMapsKey}>
+      <RootContent />
+    </APIProvider>
+  ) : (
+    <RootContent />
+  );
 
 const rootRoute = createRootRoute({component: RootLayout});
 const routeTree = rootRoute.addChildren([
@@ -34,7 +55,9 @@ const routeTree = rootRoute.addChildren([
   createRoute({
     getParentRoute: () => rootRoute,
     path: "/clinics",
-    component: lazyRouteComponent(() => import("./pages/ClinicFinder")),
+    component: googleMapsKey
+      ? lazyRouteComponent(() => import("./pages/ClinicFinder"))
+      : MapsSetupRequired,
   }),
   createRoute({
     getParentRoute: () => rootRoute,
