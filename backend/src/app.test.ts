@@ -62,4 +62,25 @@ describe("API", () => {
       "general-health-center",
     );
   });
+
+  test("returns nationally seeded Title X resources", async () => {
+    const response = await app.request("/api/clinics/resources?state=FL&type=title-x&limit=5");
+    const data = await response.json();
+    expect(response.status).toBe(200);
+    expect(data.resources).toHaveLength(5);
+    expect(data.total).toBeGreaterThan(5);
+    expect(data.resources.every((resource: {type: string}) => resource.type === "title-x")).toBe(true);
+  });
+
+  test("returns nearby care resources ordered by distance", async () => {
+    const response = await app.request(
+      "/api/clinics/resources/nearby?lat=38.9072&lng=-77.0369&type=title-x&maxDistance=20000",
+    );
+    const data = await response.json();
+    expect(response.status).toBe(200);
+    expect(data.resources.length).toBeGreaterThan(0);
+    expect(data.resources[0].distanceMeters).toBeLessThanOrEqual(
+      data.resources.at(-1).distanceMeters,
+    );
+  });
 });

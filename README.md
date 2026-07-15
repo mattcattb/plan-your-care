@@ -80,6 +80,7 @@ bun run dev:web
 bun run typecheck
 bun run test
 bun run build
+bun run --cwd backend seed:care-data
 ```
 
 Set `VITE_GEOCODING_API_KEY` in `.env` to enable Google Maps and Places features.
@@ -105,9 +106,14 @@ The web service serves the SPA and forwards `/api/*` over Railway private networ
 
 Current deployment: https://plan-your-careweb-production.up.railway.app
 
-## Data Note
+## Care Data
 
-The state-law and clinic datasets were carried over from the hackathon project so the port remains usable. This information changes frequently and must be reviewed and refreshed before the site is presented as current medical or legal guidance.
+The bundled care-resource snapshot contains separately classified Title X family-planning clinics and HRSA-supported general health centers. Refresh it from the public source data with `bun run --cwd backend seed:care-data`. The importer records source URLs and a retrieval timestamp, and Redis is populated from the snapshot when the API starts.
+
+- `GET /api/clinics/resources?state=FL&type=title-x`
+- `GET /api/clinics/resources/nearby?lat=29.65&lng=-82.32&type=title-x&maxDistance=80000`
+
+The original hackathon abortion-provider list remains separate because a Title X or HRSA location must not be represented as offering abortion care without provider-level verification. The state-law dataset also requires a dedicated recurring source review before it should be presented as current legal guidance.
 
 ## Project Notes
 

@@ -1,14 +1,18 @@
 import {createClient} from "redis";
 import {clinicsData} from "./seed/clinicSeed.data";
+import careResourcesSnapshot from "./seed/generated/careResources.data.json";
 import {statesArray} from "./seed/statesSeed.data";
+import type {CareResource} from "./types/careResource";
 
 const STATES_KEY = "plan-your-care:states";
 const CLINICS_KEY = "plan-your-care:clinics";
+const CARE_RESOURCES_KEY = "plan-your-care:care-resources";
 
 const clinics = clinicsData.map((clinic, index) => ({
   ...clinic,
   _id: `${clinic.state.toLowerCase()}-${index + 1}`,
 }));
+const careResources = careResourcesSnapshot.resources as CareResource[];
 
 let redis: ReturnType<typeof createClient> | null = null;
 
@@ -26,6 +30,7 @@ export const connectDataStore = async () => {
     await client.mSet({
       [STATES_KEY]: JSON.stringify(statesArray),
       [CLINICS_KEY]: JSON.stringify(clinics),
+      [CARE_RESOURCES_KEY]: JSON.stringify(careResources),
     });
     redis = client;
     console.log("Redis connected and reference data loaded");
@@ -51,3 +56,6 @@ const readJson = async <Value>(key: string, fallback: Value): Promise<Value> => 
 
 export const getStates = () => readJson(STATES_KEY, statesArray);
 export const getClinics = () => readJson(CLINICS_KEY, clinics);
+export const getCareResources = () =>
+  readJson(CARE_RESOURCES_KEY, careResources);
+export const careResourcesRetrievedAt = careResourcesSnapshot.retrievedAt;
